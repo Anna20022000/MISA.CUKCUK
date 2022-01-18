@@ -1,5 +1,4 @@
 ﻿using MISA.CukCuk.Core.Entities;
-using MISA.CukCuk.Core.Entities.Dtos;
 using MISA.CukCuk.Core.Exceptions;
 using MISA.CukCuk.Core.Interfaces.Repository;
 using MISA.CukCuk.Core.Interfaces.Service;
@@ -236,11 +235,6 @@ namespace MISA.CukCuk.Core.Services
         public int? Delete(List<Guid> listEntityId)
         {
             throw new NotImplementedException();
-        }
-
-        public object Filter(int pageIndex, int pageSize, List<ObjectFilter> objectFilters)
-        {
-            return _baseRepository.Filter(pageIndex, pageSize, objectFilters);
         }
 
         #endregion

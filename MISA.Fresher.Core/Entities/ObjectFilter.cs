@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MISA.CukCuk.Core.Entities.Dtos
+namespace MISA.CukCuk.Core.Entities
 {
     /// <summary>
     /// Thông tin dùng để lọc dữ liệu

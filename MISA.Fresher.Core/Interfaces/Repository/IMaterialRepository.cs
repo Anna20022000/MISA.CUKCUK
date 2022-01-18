@@ -17,5 +17,14 @@ namespace MISA.CukCuk.Core.Interfaces.Repository
         /// CreatedBy: CTKimYen (13/1/2022)
         public string GetNewCode(string materialPreCode);
 
+        /// <summary>
+        /// Thực hiện lọc dữ liệu theo điều kiện
+        /// </summary>
+        /// <param name="pageIndex">Trang cần lấy</param>
+        /// <param name="pageSize">Số bản ghi trên trang</param>
+        /// <param name="objectFilters">Danh sách các đối tượng lọc</param>
+        /// <returns>Danh sách bản ghi thỏa mãn</returns>
+        /// CreatedDate: CTKimYen (16/1/2022)
+        object Filter(int pageIndex, int pageSize, List<ObjectFilter> objectFilters);
     }
 }

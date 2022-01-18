@@ -160,6 +160,24 @@ namespace MISA.CukCuk.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Proc_Delete{0}.
+        /// </summary>
+        public static string Proc_Delete {
+            get {
+                return ResourceManager.GetString("Proc_Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Proc_GetSingle{0}.
+        /// </summary>
+        public static string Proc_GetSingle {
+            get {
+                return ResourceManager.GetString("Proc_GetSingle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Proc_Insert{0}.
         /// </summary>
         public static string Proc_Insert {

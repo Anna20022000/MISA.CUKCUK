@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Extensions.Configuration;
 using MISA.CukCuk.Core.Entities;
-using MISA.CukCuk.Core.Entities.Dtos;
 using MISA.CukCuk.Core.Interfaces.Repository;
 using MISA.CukCuk.Core.Properties;
 using MySqlConnector;
@@ -22,6 +21,9 @@ namespace MISA.CukCuk.Infrastructure.Repositories
         /// Chuỗi kết nối đến csdl
         /// </summary>
         protected string _connectionString = string.Empty;
+        /// <summary>
+        /// connection to db type IDbconnection
+        /// </summary>
         protected IDbConnection _dbConnection = null;
         /// <summary>
         /// Tên của đối tượng
@@ -32,6 +34,8 @@ namespace MISA.CukCuk.Infrastructure.Repositories
         /// </summary>
         protected string ProcInsert = Core.Properties.Resources.Proc_Insert;
         protected string ProcUpdate = Core.Properties.Resources.Proc_Update;
+        protected string ProcDelete = Core.Properties.Resources.Proc_Delete;
+        protected string ProcGetSingle = Core.Properties.Resources.Proc_GetSingle;
 
         #endregion
 
@@ -52,7 +56,6 @@ namespace MISA.CukCuk.Infrastructure.Repositories
             parameters.Add($"@{_className}Id", entityId);
 
             string sql = $"SELECT * FROM {_className} WHERE {propName} = @{propName} AND {_className}Id != @{_className}Id ";
-
             // khởi tạo kết nối với db:
             using (MySqlConnection sqlConnection = new MySqlConnection(_connectionString))
             {
@@ -65,106 +68,45 @@ namespace MISA.CukCuk.Infrastructure.Repositories
             }
             return false;
         }
-
         public int Delete(Guid entityId)
         {
             DynamicParameters parameters = new DynamicParameters();
-            parameters.Add($"@{_className}ID", entityId);
-            string sql = $"DELETE FROM {_className} WHERE {_className}ID = @{_className}ID";
+            parameters.Add($"@{_className}Id", entityId);
+            string sql = $"DELETE FROM {_className} WHERE {_className}Id = @{_className}Id";
             // khởi tạo kết nối với db:
             using (MySqlConnection sqlConnection = new MySqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var transaction = sqlConnection.BeginTransaction())
                 {
-
                     var rowAffected = sqlConnection.Execute(sql, param: parameters, transaction: transaction);
                     transaction.Commit();
                     return rowAffected;
                 }
             }
         }
-
-        public object Filter(int pageIndex, int pageSize, List<ObjectFilter> objectFilters)
+        /// <summary>
+        /// Thực hiện xóa một bản ghi với transaction
+        /// </summary>
+        /// <param name="entity">đối tượng cần xóa</param>
+        /// <param name="transaction">transaction</param>
+        /// <returns>Số lượng bản ghi xóa thành công</returns>
+        /// CreatedBy: CTKimYen (18/1/2022)
+        protected int Delete(BaseEntity entity, IDbTransaction transaction)
         {
-            string columns = string.Empty;
-            string where = string.Empty;
-            string sort = string.Empty;
-            string table = _className.ToLower();
-            DynamicParameters parameters = new DynamicParameters();
+            var parameters = SetParam(entity);
+            var connection = transaction.Connection;
+            var rowAffects = 0;
+            string sql = string.Format(ProcDelete, entity.GetType().Name);
 
-            if (objectFilters.Count > 0)
+            if (connection?.State == ConnectionState.Open)
             {
-                foreach (var item in objectFilters)
-                {
-                    // thêm tên cột vào chuỗi columns
-                    //columns += $"{ item.Column},";
-                    // thêm điều kiện vào chuỗi where
-                    // Kiểm tra toán tử
-                    switch (item.Operator)
-                    {
-                        case Core.Enum.DbOperator.Contain:
-                            where += $" {item.Column} LIKE '%{item.Value}%' {item.AdditionalOperator}";
-                            break;
-                        case Core.Enum.DbOperator.EqualTo:
-                            where += $" {item.Column} = '{item.Value}' {item.AdditionalOperator}";
-                            break;
-                        case Core.Enum.DbOperator.BeginWith:
-                            where += $" {item.Column} LIKE '{item.Value}%' {item.AdditionalOperator}";
-                            break;
-                        case Core.Enum.DbOperator.EndWith:
-                            where += $" {item.Column} LIKE '%{item.Value}' {item.AdditionalOperator}";
-                            break;
-                        case Core.Enum.DbOperator.NotContain:
-                            where += $" {item.Column} NOT LIKE '%{item.Value}%' {item.AdditionalOperator}";
-                            break;
-                        default:
-                            break;
-                    }
-                    // Thêm tên cột và điều kiện sắp xếp vào chuỗi sort
-                    if (item.Sort != string.Empty)
-                    {
-                        sort += $"{item.Column} {item.Sort},";
-                    }
-
-                }
-                // Cắt bỏ dấu phẩy thừa ở cuối chuỗi
-                //columns = columns.Substring(0, columns.Length - 1);
-                if (sort.Length > 0)
-                    sort = sort.Substring(0, sort.Length - 1);
-                // Cắt bỏ điều kiện AND/OR thừa ở cuối chuỗi
-                if (where.Length > 0)
-                    where = where.Substring(0, where.LastIndexOf(" "));
+                // thực thi commandtext
+                rowAffects = connection.Execute(sql, parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
             }
-
-
-
-            // khởi tạo kết nối với db:
-            using (MySqlConnection sqlConnection = new MySqlConnection(_connectionString))
-            {
-                var sql = "Proc_Filter";
-                parameters.Add("m_Table", table);
-                parameters.Add("m_PageSize", pageSize);
-                parameters.Add("m_PageIndex", pageIndex);
-                parameters.Add("m_Column", columns);
-                parameters.Add("m_Where", where);
-                parameters.Add("m_Sort", sort);
-                parameters.Add("m_TotalRecord", direction: ParameterDirection.Output);
-                parameters.Add("m_TotalPage", direction: ParameterDirection.Output);
-                // Thực thi lấy dữ liệu trong db:
-                var entities = sqlConnection.Query<T>(sql, param: parameters, commandType: CommandType.StoredProcedure);
-                var totalPage = parameters.Get<int>("m_TotalPage");
-                var totalRecord = parameters.Get<int>("m_TotalRecord");
-
-                return new
-                {
-                    TotalRecord = totalRecord,
-                    TotalPage = totalPage,
-                    Data = entities
-                };
-            }
+            //số bản ghi delete thành công
+            return rowAffects;
         }
-
         public virtual IEnumerable<T> GetAll()
         {
             // khởi tạo kết nối với db:
@@ -175,7 +117,6 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                 return entities;
             }
         }
-
         public virtual T GetById(Guid entityId)
         {
             // khởi tạo kết nối với db:
@@ -187,13 +128,12 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                 return entitiy;
             }
         }
-
         /// <summary>
         /// Tạo paramesters cho đối tượng
         /// </summary>
         /// <param name="entity">đối tượng</param>
         /// <returns>Paramesters của đối tượng đó</returns>
-        public DynamicParameters SetParam(BaseEntity entity)
+        protected DynamicParameters SetParam(BaseEntity entity)
         {
             DynamicParameters parameters = new DynamicParameters();
             // Lấy ra các property của đối tượng:
@@ -216,7 +156,6 @@ namespace MISA.CukCuk.Infrastructure.Repositories
             }
             return parameters;
         }
-
         public virtual int Insert(BaseEntity entity)
         {
             DynamicParameters parameters = SetParam(entity);
@@ -242,7 +181,7 @@ namespace MISA.CukCuk.Infrastructure.Repositories
         /// <param name="transaction">transaction</param>
         /// <returns>Số lượng bản ghi thêm mới thành công</returns>
         /// CreatedBy: CTKimYen (18/1/2022)
-        public int Add(BaseEntity entity, IDbTransaction transaction)
+        protected int Insert(BaseEntity entity, IDbTransaction transaction)
         {
             var parameters = SetParam(entity);
             var connection = transaction.Connection;
@@ -272,10 +211,32 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                 var rowAffected = mySqlConnection.Execute(sql, param: parameters, transaction: transaction);
 
                 transaction.Commit();
-
                 return rowAffected;
             }
         }
+        /// <summary>
+        /// Thực hiện cập nhật một bản ghi với transaction cho trước
+        /// </summary>
+        /// <param name="entity">Đối tượng cần sửa</param>
+        /// <param name="transaction">transaction</param>
+        /// <returns>Số lượng bản ghi cập nhật thành công</returns>
+        /// CreatedBy: CTKimYen (18/1/2022)
+        protected int Edit(BaseEntity entity, IDbTransaction transaction)
+        {
+            var parameters = SetParam(entity);
+            var connection = transaction.Connection;
+            var rowAffects = 0;
+            string sql = string.Format(ProcUpdate, entity.GetType().Name);
+
+            if (connection?.State == ConnectionState.Open)
+            {
+                // thực thi commandtext
+                rowAffects = connection.Execute(sql, parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+            }
+            //số bản ghi update thành công
+            return rowAffects;
+        }
+
         #endregion
 
     }

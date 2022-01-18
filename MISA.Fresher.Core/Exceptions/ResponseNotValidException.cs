@@ -8,9 +8,9 @@ namespace MISA.CukCuk.Core.Exceptions
 {
     public class ResponseNotValidException : Exception
     {
-        public ResponseNotValidException(object? value = null) =>
+        public ResponseNotValidException(object value = null) =>
         (Value) = (value);
 
-        public object? Value { get; }
+        public object Value { get; }
     }
 }

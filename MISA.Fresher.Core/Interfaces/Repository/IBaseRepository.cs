@@ -1,5 +1,4 @@
 ﻿using MISA.CukCuk.Core.Entities;
-using MISA.CukCuk.Core.Entities.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,15 +54,5 @@ namespace MISA.CukCuk.Core.Interfaces.Repository
         /// <returns>true - đã tồn tại; false - chưa tồn tại</returns>
         /// CreatedBy: CTKimYen (13/1/2022)
         public bool CheckExist(string propName, string propValue, string entityId);
-
-        /// <summary>
-        /// Thực hiện lọc dữ liệu theo điều kiện
-        /// </summary>
-        /// <param name="pageIndex">Trang cần lấy</param>
-        /// <param name="pageSize">Số bản ghi trên trang</param>
-        /// <param name="objectFilters">Danh sách các đối tượng lọc</param>
-        /// <returns>Danh sách bản ghi thỏa mãn</returns>
-        /// CreatedDate: CTKimYen (16/1/2022)
-        object Filter(int pageIndex, int pageSize, List<ObjectFilter> objectFilters);
     }
 }

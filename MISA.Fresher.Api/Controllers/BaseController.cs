@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MISA.CukCuk.Core.Entities.Dtos;
 using MISA.CukCuk.Core.Interfaces.Repository;
 using MISA.CukCuk.Core.Interfaces.Service;
 using System;
@@ -100,13 +99,6 @@ namespace MISA.CukCuk.Api.Controllers
                 return StatusCode(200, res);
             }
             return null;
-        }
-
-
-        [HttpPost("filter")]
-        public IActionResult Filter(int pageIndex, int pageSize, List<ObjectFilter> objectFilters)
-        {
-            return Ok(_baseService.Filter(pageIndex, pageSize, objectFilters));
         }
     }
 }

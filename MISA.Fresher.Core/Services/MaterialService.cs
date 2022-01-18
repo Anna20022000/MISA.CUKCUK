@@ -3,6 +3,7 @@ using MISA.CukCuk.Core.Exceptions;
 using MISA.CukCuk.Core.Interfaces.Repository;
 using MISA.CukCuk.Core.Interfaces.Service;
 using MISA.CukCuk.Core.Properties;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,13 @@ namespace MISA.CukCuk.Core.Services
         public MaterialService(IMaterialRepository materialRepository) : base(materialRepository)
         {
             _materialRepository = materialRepository;
+        }
+
+        public object Filter(int pageIndex, int pageSize, string objectFilterJson)
+        {
+            // Convert string json to list object
+            var objectFilters = JsonConvert.DeserializeObject<List<ObjectFilter>>(objectFilterJson);
+            return _materialRepository.Filter(pageIndex, pageSize, objectFilters);
         }
         #endregion
 
@@ -74,6 +82,7 @@ namespace MISA.CukCuk.Core.Services
             }
             return true;
         }
+
         #endregion
     }
 }

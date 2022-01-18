@@ -150,6 +150,12 @@
   <data name="ExceptionUserMsgError" xml:space="preserve">
     <value>Có lỗi xảy ra vui lòng liên hệ MISA để được trợ giúp.</value>
   </data>
+  <data name="Proc_Delete" xml:space="preserve">
+    <value>Proc_Delete{0}</value>
+  </data>
+  <data name="Proc_GetSingle" xml:space="preserve">
+    <value>Proc_GetSingle{0}</value>
+  </data>
   <data name="Proc_Insert" xml:space="preserve">
     <value>Proc_Insert{0}</value>
   </data>

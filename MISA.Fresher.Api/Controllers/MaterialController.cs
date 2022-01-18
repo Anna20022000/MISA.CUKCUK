@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MISA.CukCuk.Core.Entities;
-using MISA.CukCuk.Core.Entities.Dtos;
 using MISA.CukCuk.Core.Interfaces.Repository;
 using MISA.CukCuk.Core.Interfaces.Service;
 using System;
@@ -34,5 +33,10 @@ namespace MISA.CukCuk.Api.Controllers
             return Ok(_materialService.GetNewCode(materialName));
         }
 
+        [HttpGet("filter")]
+        public IActionResult Filter([FromQuery] int pageIndex, int pageSize, string objectFilterJson)
+        {
+            return Ok(_materialService.Filter(pageIndex, pageSize, objectFilterJson));
+        }
     }
 }
