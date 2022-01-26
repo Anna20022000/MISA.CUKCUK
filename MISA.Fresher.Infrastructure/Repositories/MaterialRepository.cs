@@ -55,7 +55,7 @@ namespace MISA.CukCuk.Infrastructure.Repositories
             }
         }
 
-        public object Filter(int pageIndex, int pageSize, List<ObjectFilter> objectFilters)
+        public object Filter(int pageIndex, int pageSize, List<ObjectFilter> objectFilters, ObjectSort objectSort)
         {
             string columns = string.Empty;
             string where = string.Empty;
@@ -89,18 +89,15 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                         default:
                             break;
                     }
-                    // Thêm tên cột và điều kiện sắp xếp vào chuỗi sort
-                    if (item.Sort != string.Empty)
-                    {
-                        sort += $"{item.Column} {item.Sort},";
-                    }
                 }
-                // Cắt bỏ dấu phẩy thừa ở cuối chuỗi
-                if (sort.Length > 0)
-                    sort = sort.Substring(0, sort.Length - 1);
                 // Cắt bỏ điều kiện AND/OR thừa ở cuối chuỗi
                 if (where.Length > 0)
                     where = where.Substring(0, where.LastIndexOf(" "));
+            }
+            // Thêm tên cột và điều kiện sắp xếp vào chuỗi sort
+            if (!string.IsNullOrEmpty(objectSort.Column))
+            {
+                sort += $"{objectSort.Column} {objectSort.Sort}";
             }
             // khởi tạo kết nối với db:
             using (MySqlConnection sqlConnection = new MySqlConnection(_connectionString))
@@ -183,6 +180,11 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                     transaction.Rollback();
                     throw ex;
                 }
+                finally
+                {
+                    _dbConnection.Close();
+                    _dbConnection.Dispose();
+                }
             }
             return result;
         }
@@ -201,7 +203,7 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                 {
                     material.MaterialId = entityId;
                     // Sửa NVL
-                    result += Edit(material, transaction);
+                    result += Update(material, transaction);
                     if (result > 0 && material.Conversions.Count > 0)
                     {
                         // Cập nhật danh sách Đơn vị chuyển đổi
@@ -217,7 +219,7 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                                     break;
                                 // Nếu conversion có trạng thái = update -> sửa
                                 case Core.Enum.State.Update:
-                                    result += Edit(item, transaction);
+                                    result += Update(item, transaction);
                                     break;
                                 // Nếu conversion có trạng thái = delete -> xóa
                                 case Core.Enum.State.Delete:

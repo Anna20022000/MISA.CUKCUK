@@ -33,9 +33,6 @@ namespace MISA.CukCuk.Core.Entities
         /// Kiểu quan hệ điều kiện với các cột khác
         /// </summary>
         public string AdditionalOperator { get; set; } = "AND";
-        /// <summary>
-        /// Điều kiện sắp xếp
-        /// </summary>
-        public string Sort { get; set; } = string.Empty;
+        
     }
 }

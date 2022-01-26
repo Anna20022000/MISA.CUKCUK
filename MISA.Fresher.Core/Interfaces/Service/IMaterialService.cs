@@ -23,8 +23,9 @@ namespace MISA.CukCuk.Core.Interfaces.Service
         /// <param name="pageIndex">Trang cần lấy</param>
         /// <param name="pageSize">Số bản ghi trên trang</param>
         /// <param name="objectFilterJson">Danh sách các đối tượng lọc kiểu Json</param>
+        /// <param name="objectSortJson">Danh sách các đối tượng sắp xếp kiểu Json</param>
         /// <returns>Danh sách bản ghi thỏa mãn</returns>
         /// CreatedDate: CTKimYen (16/1/2022)
-        object Filter(int pageIndex, int pageSize, string objectFilterJson);
+        object Filter(int pageIndex, int pageSize, string objectFilterJson, string objectSortJson);
     }
 }

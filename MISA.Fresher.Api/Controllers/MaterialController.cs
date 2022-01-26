@@ -34,9 +34,9 @@ namespace MISA.CukCuk.Api.Controllers
         }
 
         [HttpGet("filter")]
-        public IActionResult Filter([FromQuery] int pageIndex, int pageSize, string objectFilterJson)
+        public IActionResult Filter([FromQuery] int pageIndex, int pageSize, string objectFilterJson, string objectSortJson)
         {
-            return Ok(_materialService.Filter(pageIndex, pageSize, objectFilterJson));
+            return Ok(_materialService.Filter(pageIndex, pageSize, objectFilterJson, objectSortJson));
         }
     }
 }

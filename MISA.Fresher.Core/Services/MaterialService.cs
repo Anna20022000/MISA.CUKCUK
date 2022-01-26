@@ -25,11 +25,12 @@ namespace MISA.CukCuk.Core.Services
             _materialRepository = materialRepository;
         }
 
-        public object Filter(int pageIndex, int pageSize, string objectFilterJson)
+        public object Filter(int pageIndex, int pageSize, string objectFilterJson, string objectSortJson)
         {
             // Convert string json to list object
             var objectFilters = JsonConvert.DeserializeObject<List<ObjectFilter>>(objectFilterJson);
-            return _materialRepository.Filter(pageIndex, pageSize, objectFilters);
+            var objectSort = JsonConvert.DeserializeObject<ObjectSort>(objectSortJson);
+            return _materialRepository.Filter(pageIndex, pageSize, objectFilters, objectSort);
         }
         #endregion
 
@@ -48,8 +49,20 @@ namespace MISA.CukCuk.Core.Services
                 {
                     materialPreCode += c.Substring(0, 1);
                 }
+                materialPreCode = ConvertToUnSign(materialPreCode);
             }
             return _materialRepository.GetNewCode(materialPreCode);
+        }
+        /// <summary>
+        /// Thực hiện convert chuỗi có dấu sang chuỗi ko dấu
+        /// </summary>
+        /// <param name="s">Chuỗi cần convert</param>
+        /// <returns>Chuỗi không dấu</returns>
+        private string ConvertToUnSign(string s)
+        {
+            Regex regex = new Regex("\\p{IsCombiningDiacriticalMarks}+");
+            string temp = s.Normalize(NormalizationForm.FormD);
+            return regex.Replace(temp, String.Empty).Replace('\u0111', 'd').Replace('\u0110', 'D');
         }
 
         /// <summary>
@@ -61,23 +74,30 @@ namespace MISA.CukCuk.Core.Services
         protected override bool ValidateObjCustom(Material entity)
         {
             List<Guid> dvts = new List<Guid>();
+            // Id đơn vị tính chính
             var dvtc = entity.UnitId;
+            // danh sách đvcđ của entity
+            var conversions = entity.Conversions;
             // nếu list ĐVCĐ có chứa đối tượng
-            if (entity.Conversions.Count > 0)
+            if (conversions.Count > 0)
             {
-                foreach (Conversion item in entity.Conversions)
+                // Nếu danh sách đvcđ có đvcđ trùng Id đơn vị chính -> false
+                if(conversions.Exists(c=> c.UnitId == dvtc))
                 {
-                    // kiểm tra id của ĐVCĐ
-                    // Nếu trùng với id của ĐVT chính -> false
-                    if (dvtc.CompareTo(item.UnitId) == 0)
+                    throw new ResponseNotValidException(Resources.Error_Msg_Dupplicate_Unit);
+                }
+                // kiểm tra trùng trong ds đvcđ
+                else
+                {
+                    foreach (Conversion item in conversions)
                     {
-                        throw new ResponseNotValidException(Resources.Error_Msg_Dupplicate_Unit);
+                        //Nếu trong danh sách đvcđ có 2 đvcđ cùng id và trạng thái -> false
+                        var condition = conversions.FindAll(c => c.UnitId == item.UnitId && c.State == item.State);
+                        if ( condition.Count > 1)
+                        {
+                            throw new ResponseNotValidException(Resources.Error_Msg_Dupplicate_Conversion);
+                        }
                     }
-                    // Nếu các id của các ĐTCĐ trùng với nhau -> false
-                    if (dvts.Contains(item.UnitId))
-                        throw new ResponseNotValidException(Resources.Error_Msg_Dupplicate_Conversion);
-                    // Nếu tm thì add vào list ĐVT
-                    dvts.Add(item.UnitId);
                 }
             }
             return true;

@@ -17,7 +17,7 @@ namespace MISA.CukCuk.Core.Entities
         /// <summary>
         /// Khóa chính
         /// </summary>
-        public Guid ConversionId { get; set; }
+        public Guid? ConversionId { get; set; }
         /// <summary>
         /// Tỷ lệ chuyển đổi
         /// </summary>
@@ -37,7 +37,7 @@ namespace MISA.CukCuk.Core.Entities
         /// <summary>
         /// Mã NVL - Khóa ngoại
         /// </summary>
-        public Guid MaterialId { get; set; }
+        public Guid? MaterialId { get; set; }
         /// <summary>
         /// Trạng thái của đối tượng
         /// </summary>

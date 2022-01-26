@@ -146,11 +146,13 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                 var propName = prop.Name;
                 // Lay ra gia tri cua prop tuong ung voi doi tuong:
                 var propValue = prop.GetValue(entity);
-                // Nếu property là Khóa chính và có giá trị mặc định thì set = mã Guid mới
-                if (propName == $"{entityTypeName}Id" && prop.PropertyType == typeof(Guid) &&
-                    propValue.ToString().CompareTo(Resources.Defauld_Guid) == 0)
+                // Nếu property là Khóa
+                if (propName == $"{entityTypeName}Id" || prop.PropertyType == typeof(Guid) )
                 {
-                    propValue = Guid.NewGuid();
+                    if(propValue == null)
+                        propValue = Guid.NewGuid();
+                    else if ( propValue.ToString().CompareTo(Resources.Defauld_Guid) == 0)
+                        propValue = Guid.NewGuid();
                 }
                 parameters.Add($"m_{propName}", propValue);
             }
@@ -208,7 +210,7 @@ namespace MISA.CukCuk.Infrastructure.Repositories
                 mySqlConnection.Open();
                 MySqlTransaction transaction = mySqlConnection.BeginTransaction();
 
-                var rowAffected = mySqlConnection.Execute(sql, param: parameters, transaction: transaction);
+                var rowAffected = mySqlConnection.Execute(sql, parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                 transaction.Commit();
                 return rowAffected;
@@ -221,7 +223,7 @@ namespace MISA.CukCuk.Infrastructure.Repositories
         /// <param name="transaction">transaction</param>
         /// <returns>Số lượng bản ghi cập nhật thành công</returns>
         /// CreatedBy: CTKimYen (18/1/2022)
-        protected int Edit(BaseEntity entity, IDbTransaction transaction)
+        protected int Update(BaseEntity entity, IDbTransaction transaction)
         {
             var parameters = SetParam(entity);
             var connection = transaction.Connection;
